@@ -1,5 +1,5 @@
 /**
- * src/components/CreateAccount.js
+ * src/components/Login.js
  */
 
 import React from 'react';
@@ -47,7 +47,7 @@ class FormHeader extends React.Component {
         return (
             <React.Fragment>
                 <View style={ styles.header }>
-                    <Text style={ styles.title }>Create an Account</Text>
+                    <Text style={ styles.title }>Login</Text>
                 </View>
                 <View style={ styles.headerBorder }></View>
             </React.Fragment>
@@ -58,46 +58,25 @@ class FormHeader extends React.Component {
 
 const validate = values => {
     const error = {};
-    error.name = '';
     error.email = '';
-    error.accountNum = '';
-    error.routingNum = '';
-    error.password = '';
-    error.confPassword = '';
 
-    if (values.name === undefined) values.name = '';
     if (values.email === undefined) values.email = '';
-    if (values.accountNum === undefined) values.accountNum = '';
-    if (values.routingNum === undefined) values.routingNum = '';
-    if (values.password === undefined) values.password = '';
-    if (values.confPassword === undefined) values.confPassword = '';
     
     // validate email address
     var emailRegex = /.+@.+\..+/;
     if (!values.email.match(emailRegex) && values.email !== '')
         error.email = "invalid email address";
 
-    // US routing numbers are 9 digits long
-    if (values.routingNum.length !== 9 && values.routingNum.length !== 0)
-        error.routingNum = "US routing numbers must be 9 digits long";
-
-    // password must be at least 8 characters long
-    if (values.password.length < 8 && values.password.length !== 0)
-        error.password = "password must be at least 8 characters long";
-    // confirmation password must match password
-    if (values.password !== '' && values.confPassword !== '' && values.password !== values.confPassword)
-        error.confPassword = "passwords do not match";
-
     return error;
 };
 
 
-class CreateAccount extends React.Component {
+class Login extends React.Component {
     renderInput({ input, label, type, meta: { touched, error, warning } }) {
         var hasError = false;
         if (error !== undefined) hasError = true;
         var errorTag = hasError ? <Text style={ styles.error }>{ error }</Text> : <Text />;
-        var secure = (label.slice(0, 8) === 'Password' || label === 'Confirm Password');
+        var secure = (label === 'Password');
 
         return ( 
             <Item error={ hasError } floatingLabel>
@@ -115,38 +94,14 @@ class CreateAccount extends React.Component {
                 <Content style={ styles.form }>
                     <ScrollView keyboardShouldPersistTaps={ 'handled' }>
                         <Field
-                            name={ 'name' }
-                            label={ 'Full name' }
-                            component={ this.renderInput }
-                        />
-                        <Text style={ styles.spacer } />
-                        <Field
                             name={ 'email' }
                             label={ 'Email' }
                             component={ this.renderInput }
                         />
                         <Text style={ styles.spacer } />
                         <Field
-                            name={ 'accountNum' }
-                            label={ 'Account number' }
-                            component={ this.renderInput }
-                        />
-                        <Text style={ styles.spacer } />
-                        <Field
-                            name={ 'routingNum' }
-                            label={ 'Routing number' }
-                            component={ this.renderInput }
-                        />
-                        <Text style={ styles.spacer } />
-                        <Field
                             name={ 'password' }
-                            label={ 'Password (at least 8 characters)' }
-                            component={ this.renderInput }
-                        />
-                        <Text style={ styles.spacer } />
-                        <Field
-                            name={ 'confPassword' }
-                            label={ 'Confirm Password' }
+                            label={ 'Password' }
                             component={ this.renderInput }
                         />
                         <Button block primary style={ styles.button } onPress={ this.props.handleSubmit }>
@@ -161,6 +116,6 @@ class CreateAccount extends React.Component {
 
 
 export default reduxForm({
-    form: 'create',
+    form: 'login',
     validate
-})(CreateAccount);
+})(Login);

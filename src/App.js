@@ -10,6 +10,7 @@ import { createStore } from 'redux';
 
 import allReducers from './reducers/index.js';
 import CreateAccount from './components/CreateAccount';
+import Login from './components/Login';
 import Welcome from './components/Welcome';
 
 
@@ -48,7 +49,11 @@ import Welcome from './components/Welcome';
 const store = createStore(allReducers);
 
 export default class App extends React.Component {
-    handleSubmit(data) {
+    handleRegisterSubmit(data) {
+        Alert.alert('Submitted!', JSON.stringify(data));
+    }
+
+    handleLoginSubmit(data) {
         Alert.alert('Submitted!', JSON.stringify(data));
     }
 
@@ -69,9 +74,17 @@ export default class App extends React.Component {
                         <Scene
                             component={ CreateAccount }
                             hideNavBar={ true }
-                            onSubmit={ this.handleSubmit }
+                            onSubmit={ this.handleRegisterSubmit }
                             key='CreateAccount'
                             title='CreateAccount'
+                        />
+                        {/* login page */}
+                        <Scene
+                            component={ Login }
+                            hideNavBar={ true }
+                            onSubmit={ this.handleLoginSubmit }
+                            key='Login'
+                            title='Login'
                         />
                     </Scene>
                 </Router>

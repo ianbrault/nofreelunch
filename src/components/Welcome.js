@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
 
 export default class Welcome extends React.Component {
     loginPress() {
-
+        Actions.Login();
     }
 
     registerPress() {
@@ -60,7 +60,7 @@ export default class Welcome extends React.Component {
                 <Text style={ styles.title }>NO FREE</Text>
                 <Text style={ styles.title }>LUNCH</Text>
                 <View style={ styles.button }>
-                    <Button block light style={ styles.loginButton }>
+                    <Button block light style={ styles.loginButton } onPress={ this.loginPress }>
                         <Text style={ styles.buttonText }>LOGIN</Text>
                     </Button>
                 </View>
