@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: 'bold',
+        color: '#003300',
         paddingTop: 8
     },
     form: {
@@ -34,6 +35,9 @@ const styles = StyleSheet.create({
     button: {
         marginTop: 50
     },
+    buttonText: {
+        fontWeight: 'bold'
+    }
 });
 
 
@@ -43,7 +47,7 @@ class FormHeader extends React.Component {
         return (
             <React.Fragment>
                 <View style={ styles.header }>
-                    <Text style={ styles.title }>Create an account</Text>
+                    <Text style={ styles.title }>Create an Account</Text>
                 </View>
                 <View style={ styles.headerBorder }></View>
             </React.Fragment>
@@ -58,11 +62,15 @@ const validate = values => {
     error.email = '';
     error.accountNum = '';
     error.routingNum = '';
+    error.password = '';
+    error.confPassword = '';
 
     if (values.name === undefined) values.name = '';
     if (values.email === undefined) values.email = '';
     if (values.accountNum === undefined) values.accountNum = '';
     if (values.routingNum === undefined) values.routingNum = '';
+    if (values.password === undefined) values.password = '';
+    if (values.confPassword === undefined) values.confPassword = '';
     
     // validate email address
     var emailRegex = /.+@.+\..+/;
@@ -73,6 +81,13 @@ const validate = values => {
     if (values.routingNum.length !== 9 && values.routingNum.length !== 0)
         error.routingNum = "US routing numbers must be 9 digits long";
 
+    // password must be at least 8 characters long
+    if (values.password.length < 8 && values.password.length !== 0)
+        error.password = "password must be at least 8 characters long";
+    // confirmation password must match password
+    if (values.password !== '' && values.confPassword !== '' && values.password !== values.confPassword)
+        error.confPassword = "passwords do not match";
+
     return error;
 };
 
@@ -81,14 +96,13 @@ class CreateAccount extends React.Component {
     renderInput({ input, label, type, meta: { touched, error, warning } }) {
         var hasError = false;
         if (error !== undefined) hasError = true;
-
-        if (error !== undefined) console.log("error: ", error);
         var errorTag = hasError ? <Text style={ styles.error }>{ error }</Text> : <Text />;
+        var secure = (label.slice(0, 8) === 'Password' || label === 'Confirm Password');
 
         return ( 
             <Item error={ hasError } floatingLabel>
                 <Label>{ label }</Label>
-                <Input { ...input } />
+                <Input secureTextEntry={ secure } { ...input } />
                 { errorTag }
             </Item>
         );
@@ -103,6 +117,12 @@ class CreateAccount extends React.Component {
                         <Field
                             name={ 'name' }
                             label={ 'Full name' }
+                            component={ this.renderInput }
+                        />
+                        <Text style={ styles.spacer } />
+                        <Field
+                            name={ 'username' }
+                            label={ 'Username' }
                             component={ this.renderInput }
                         />
                         <Text style={ styles.spacer } />
@@ -123,8 +143,20 @@ class CreateAccount extends React.Component {
                             label={ 'Routing number' }
                             component={ this.renderInput }
                         />
+                        <Text style={ styles.spacer } />
+                        <Field
+                            name={ 'password' }
+                            label={ 'Password (at least 8 characters)' }
+                            component={ this.renderInput }
+                        />
+                        <Text style={ styles.spacer } />
+                        <Field
+                            name={ 'confPassword' }
+                            label={ 'Confirm Password' }
+                            component={ this.renderInput }
+                        />
                         <Button block primary style={ styles.button } onPress={ this.props.handleSubmit }>
-                            <Text>Submit</Text>
+                            <Text style={ styles.buttonText }>SUBMIT</Text>
                         </Button>
                     </ScrollView>
                 </Content>
