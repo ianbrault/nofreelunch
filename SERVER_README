@@ -1,0 +1,45 @@
+# A user must consist of the following fields:
+#   - Full name (name) - string with no @
+#   - Username (username) - string with no @
+#   - Email (email) - string with @
+#   - Current debts owed to others (liabilities) - A dictionary from payids to (user, amount) 2-tuples, where 
+#       type(payid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
+#   - Current debts owed by others to user (outstanding_reqs) - A dictionary from payids to (user, amount) 2-tuples, where 
+#       type(payid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
+#   - Friends (friends) - list of username strings
+#   - Current NFL balance (balance) - float with precision 2
+
+User Server API:
+
+CREATE [username] [email] [firstname] [lastname] [payment_source_token]
+This creates a user in the database with the above info
+
+SEARCH [searcher] [searchee] [optionally 1 of "FRIEND" OR "SHORT"]
+Search for a searchee (by username or email, according to type) in the database. 
+If the user is not in the database, we always return FAILURE
+If the user is found, the behavior depends on the presence of the trailing value
+1.) If there is no trailing value, "SUCCESS" + the JSON value of the user is returned (used for checking what's happened to the user)
+2.) If the trailing value is FRIEND, searcher adds searchee as a friend, and then returns SUCCESS
+3.) If the trailing value is SHORT, only SUCCESS is returned (used for checking whether a user exists)
+
+UPDATE [username] [fields...]
+where user is the username and fields are a list of key value pairs separated by spaces, whose keys can be any of the following:
+    - EMAIL - value is an email string
+    - NAME - value is the user's name
+    - PAYMENT - we can update the user's preferred bank account with a token from stripe.js
+
+CHARGE [user_making_charge] (chargee, amount)...
+Sends a charge request from user_making_charge to every chargee in the list for the amount in the list. As indicated in the request signature, there must be a specific dollar amount expressed in [0-9]+\.[0-9]{2}
+
+COMPLETE [payer] [payee] [amount] [method = BANK | NFLBAL]
+Checks if a charge exists from the payee to the payer in the amount given. If it does, it tries to complete the charge through the following process:
+1.) If method is BANK, it takes charges the payers bank account and completes
+2.) If method is NFLBAL, it charges the balance and completes IF the balance is sufficient to cover the charge.
+If the above steps succeed, it credits the NFL balance of the payee, removes the charge, and returns SUCESS.
+^^If any of the above steps fail, it does not remove the charge and returns FAILURE
+
+TRANSFER [user] [amount]
+If the user has an NFL balance larger than [amount], we intiate a bank transfer out of the NFL account to the user's bank account and return SUCCESS.
+Otherwise, we return FAILURE and do nothing.
+
+
