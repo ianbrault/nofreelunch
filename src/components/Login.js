@@ -56,21 +56,6 @@ class FormHeader extends React.Component {
 }
 
 
-const validate = values => {
-    const error = {};
-    error.email = '';
-
-    if (values.email === undefined) values.email = '';
-    
-    // validate email address
-    var emailRegex = /.+@.+\..+/;
-    if (!values.email.match(emailRegex) && values.email !== '')
-        error.email = "invalid email address";
-
-    return error;
-};
-
-
 class Login extends React.Component {
     renderInput({ input, label, type, meta: { touched, error, warning } }) {
         var hasError = false;
@@ -94,8 +79,8 @@ class Login extends React.Component {
                 <Content style={ styles.form }>
                     <ScrollView keyboardShouldPersistTaps={ 'handled' }>
                         <Field
-                            name={ 'email' }
-                            label={ 'Email' }
+                            name={ 'user' }
+                            label={ 'Username or Email' }
                             component={ this.renderInput }
                         />
                         <Text style={ styles.spacer } />
@@ -117,5 +102,4 @@ class Login extends React.Component {
 
 export default reduxForm({
     form: 'login',
-    validate
 })(Login);

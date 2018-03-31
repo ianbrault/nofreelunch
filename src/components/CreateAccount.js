@@ -121,6 +121,12 @@ class CreateAccount extends React.Component {
                         />
                         <Text style={ styles.spacer } />
                         <Field
+                            name={ 'username' }
+                            label={ 'Username' }
+                            component={ this.renderInput }
+                        />
+                        <Text style={ styles.spacer } />
+                        <Field
                             name={ 'email' }
                             label={ 'Email' }
                             component={ this.renderInput }
