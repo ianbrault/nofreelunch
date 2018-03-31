@@ -1,5 +1,5 @@
 /**
- * src/components/AccountCreateForm.js
+ * src/components/CreateAccount.js
  */
 
 import React from 'react';
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     },
     button: {
         marginTop: 50
-    }
+    },
 });
 
 
@@ -77,16 +77,19 @@ const validate = values => {
 };
 
 
-class AccountCreateForm extends React.Component {
+class CreateAccount extends React.Component {
     renderInput({ input, label, type, meta: { touched, error, warning } }) {
         var hasError = false;
         if (error !== undefined) hasError = true;
+
+        if (error !== undefined) console.log("error: ", error);
+        var errorTag = hasError ? <Text style={ styles.error }>{ error }</Text> : <Text />;
 
         return ( 
             <Item error={ hasError } floatingLabel>
                 <Label>{ label }</Label>
                 <Input { ...input } />
-                { hasError ? <Text>{ error }</Text> : <Text /> }
+                { errorTag }
             </Item>
         );
     }
@@ -134,4 +137,4 @@ class AccountCreateForm extends React.Component {
 export default reduxForm({
     form: 'create',
     validate
-})(AccountCreateForm);
+})(CreateAccount);

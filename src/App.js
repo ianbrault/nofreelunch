@@ -4,11 +4,13 @@
 
 import React from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Router, Scene } from 'react-native-router-flux';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
 import allReducers from './reducers/index.js';
-import AccountCreateForm from './components/AccountCreateForm';
+import CreateAccount from './components/CreateAccount';
+import Welcome from './components/Welcome';
 
 
 /*{
@@ -53,7 +55,26 @@ export default class App extends React.Component {
     render() {
         return (
             <Provider store={ store }>
-                <AccountCreateForm onSubmit={ this.handleSubmit } />
+                <Router>
+                    <Scene key="root">
+                        {/* welcome page to login or register */}
+                        <Scene
+                            component={ Welcome }
+                            hideNavBar={ true }
+                            initial={ true }
+                            key='Welcome'
+                            title='Welcome'
+                        />
+                        {/* account creation page */}
+                        <Scene
+                            component={ CreateAccount }
+                            hideNavBar={ true }
+                            onSubmit={ this.handleSubmit }
+                            key='CreateAccount'
+                            title='CreateAccount'
+                        />
+                    </Scene>
+                </Router>
             </Provider>
         );
     }
