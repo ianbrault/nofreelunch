@@ -1,4 +1,9 @@
 {
   "name": "nofreelunch",
-  "displayName": "nofreelunch"
+  "displayName": "nofreelunch",
+  "expo": {
+        "name": "nofreelunch",
+        "slug": "nofreelunch",
+        "sdkVersion": "26.0.0"
+  }
 }
