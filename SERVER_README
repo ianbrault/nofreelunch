@@ -1,7 +1,8 @@
 # A user must consist of the following fields:
 #   - Full name (name) - string with no @
-#   - Username (username) - string with no @
+#   - Username (username) - unique among all users - string with no @
 #   - Email (email) - string with @
+#   - Password (epassword) - frontend-encrypted password, stored for validating logins
 #   - Current debts owed to others (liabilities) - A dictionary from payids to (user, amount) 2-tuples, where 
 #       type(payid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
 #   - Current debts owed by others to user (outstanding_reqs) - A dictionary from payids to (user, amount) 2-tuples, where 
@@ -11,7 +12,7 @@
 
 User Server API:
 
-CREATE [username] [email] [firstname] [lastname] [payment_source_token]
+CREATE  [firstname] [lastname] [username] [email] [encrypted_password] [payment_source_token]
 This creates a user in the database with the above info
 
 GETUSER [user] ("VERBOSE" || "SHORT")
