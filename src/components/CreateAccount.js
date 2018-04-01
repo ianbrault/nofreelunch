@@ -59,6 +59,8 @@ const validate = data => {
     if (data.lastname === undefined) data.lastname = '';
     if (data.username === undefined) data.username = '';
     if (data.email === undefined) data.email = '';
+    if (data.accountNum === undefined) data.accountNum = '';
+    if (data.routingNum === undefined) data.routingNum = '';
     if (data.dob === undefined) data.dob = '';
     if (data.address === undefined) data.address = '';
     if (data.city === undefined) data.city = '';
@@ -128,6 +130,18 @@ class CreateAccount extends React.Component {
                         <Field
                             name={ 'email' }
                             label={ 'Email' }
+                            component={ this.renderInput }
+                        />
+                        <Text style={ styles.spacer } />
+                        <Field
+                            name={ 'accountNum' }
+                            label={ 'Bank account number' }
+                            component={ this.renderInput }
+                        />
+                        <Text style={ styles.spacer } />
+                        <Field
+                            name={ 'routingNum' }
+                            label={ 'Bank routing number' }
                             component={ this.renderInput }
                         />
                         <Text style={ styles.spacer } />
