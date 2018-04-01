@@ -7,7 +7,6 @@ import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import { Actions, Router, Scene } from 'react-native-router-flux';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
-import stripe from 'tipsi-stripe';
 
 import bcrypt from "react-native-bcrypt";
 import isaac from "isaac";
@@ -18,6 +17,7 @@ import Home from './components/Home';
 import LetsEat from './components/LetsEat';
 import Loading from './components/Loading';
 import Login from './components/Login';
+import ReceiptPicture from './components/ReceiptPicture';
 import Welcome from './components/Welcome';
 
 
@@ -104,6 +104,10 @@ export default class App extends React.Component {
             return;
         }
 
+        var month = data.dob.split('-')[0];
+        var date = data.dob.split('-')[1];
+        var year = data.dob.split('-')[2];
+
         // encrypt provided password
         bcrypt.genSalt(12, (err, salt) => {
             bcrypt.hash(salt + data.password, salt, (err, hash) => {
@@ -111,17 +115,56 @@ export default class App extends React.Component {
                 delete data.confPassword;
                 data.password = hash;
 
-                var bankToken = {
+                var today = new Date();
+                var obj = {
+                    "username": data.username,
+                    "email": data.email,
+                    "legal_identity": {
+                        "address": {
+                            "line1": data.address,
+                            "city": data.city,
+                            "state": data.state,
+                            "postal_code": data.postalcode,
+                        },
+                        "dob": {
+                            "day": date,
+                            "month": month,
+                            "year": year,
+                        },
+                        "first_name": data.firstname,
+                        "last_name": data.lastname,
+                        "ssn_last_4": data.ssn,
+                    },
+                    "tos_acceptance": today.toISOString(),
+                };
+                
+                /* var bankToken = {
                     accountNumber: data.accountNum,
                     routingNumber: data.routingNum,
                     accountHolderName: data.firstname + ' ' + data.lastname,
                     accountHolderType: 'individual',
                     countryCode: 'US',
                     currency: 'usd'
+                }; */
+                var bankToken = {
+                    "bank_account[country]": "US",
+                    "bank_account[currency]": "usd",
+                    "bank_account[account_holder_name]": data.firstname + ' ' + data.lastname,
+                    "bank_account[account_holder_type]": "individual",
+                    "bank_account[routing_number]": data.routingNum,
+                    "bank_account[account_number]": data.accountNum,
                 };
 
+                var formBody = [];
+                for (var property in bankToken) {
+                    var encodedKey = encodeURIComponent(property);
+                    var encodedValue = encodeURIComponent(bankToken[property]);
+                    formBody.push(encodedKey + "=" + encodedValue);
+                }
+                formBody = formBody.join("&");
+
                 // need 2 tokens
-                stripe.createTokenWithBankAccount(bankToken).then(token1 => {
+                /* stripe.createTokenWithBankAccount(bankToken).then(token1 => {
                     stripe.createTokenWithBankAccount(bankToken).then(token2 => {
                         var today = new Date();
                         var todaystr = today.toISOString();
@@ -154,7 +197,31 @@ export default class App extends React.Component {
                             "tos_acceptance": todaystr,
                         }
                     });
-                });
+                }); */
+                var fetchurl = "https://api.stripe.com/v1/tokens";
+                var fetchopts = {
+                    method: 'post',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Bearer ' + 'pk_test_cpjLpX5fQFGlkVaeyQ6WXdEz'
+                    },
+                    body: formBody
+                }
+                fetch(fetchurl, fetchopts)
+                    .then(res1 => res1.json()).then(token1 => {
+                        fetch(fetchurl, fetchopts)
+                            .then(res2 => res2.json()).then(token2 => {
+                                obj["payment_source_token1"] = token1;
+                                obj["payment_source_token2"] = token2;
+                                Alert.alert(JSON.stringify(obj));
+                            });
+                    })
+                    .catch(err => {
+                        Actions.CreateAccount({ 
+                            validationErr: "Error creating Stripe account token " + err 
+                        });
+                    });
             });
         });
     }
@@ -227,6 +294,13 @@ export default class App extends React.Component {
                             hideNavBar={ true }
                             key='LetsEat'
                             title='LetsEat'
+                        />
+                        {/* show the picture taken of the receipt */}
+                        <Scene
+                            component={ ReceiptPicture }
+                            hideNavBar={ true }
+                            key='ReceiptPicture'
+                            title='ReceiptPicture'
                         />
                     </Scene>
                 </Router>

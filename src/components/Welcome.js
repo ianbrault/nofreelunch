@@ -7,6 +7,8 @@ import { Image, StyleSheet } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import { Button, Container, Content, Text, View } from 'native-base';
 
+import logo from '../img/logo.png';
+
 
 const styles = StyleSheet.create({
     welcomeContainer: {
@@ -56,7 +58,7 @@ export default class Welcome extends React.Component {
     render() {
         return (
             <Container style={ styles.welcomeContainer }>
-                <Image source={ require('../img/logo.png') } style={ styles.logo }/>
+                <Image source={ logo } style={ styles.logo }/>
                 <Text style={ styles.title }>NO FREE</Text>
                 <Text style={ styles.title }>LUNCH</Text>
                 <View style={ styles.button }>

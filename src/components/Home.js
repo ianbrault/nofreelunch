@@ -7,6 +7,8 @@ import { Image, StyleSheet } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import { Button, Container, Content, Text, View } from 'native-base';
 
+import logo from '../img/logo.png';
+
 
 const styles = StyleSheet.create({
     header: {
@@ -59,7 +61,7 @@ class Header extends React.Component {
         return (
             <React.Fragment>
                 <View style={ styles.header }>
-                    <Image source={ require('../img/logo.png') } style={ styles.logo }/>
+                    <Image source={ logo } style={ styles.logo }/>
                     <Text style={ styles.title }>  NO FREE LUNCH</Text>
                 </View>
                 <View style={ styles.headerBorder }></View>
