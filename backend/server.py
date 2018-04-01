@@ -1,16 +1,18 @@
 import gevent
+import gevent.monkey
+import gevent.server
 gevent.monkey.patch_all()
 import pymongo as pym
 import ssl
 import select
 import stripe
 import json
-from decimal import Decimal, quantize
-with open("stripe_api.key", 'r') as f:
+from decimal import Decimal
+with open("./stripe_api.key", 'r') as f:
     stripe.api_key = f.readline()
 global_ssl = ssl.SSLContext()
 
-class Server:
+class Server(gevent.server.StreamServer):
     def __init__(self, port_num):
         full_address = "localhost:" + str(port_num)
         super().__init__(listener=full_address, handle=self.handle_conn, ssl_context=global_ssl)
@@ -43,8 +45,8 @@ class Server:
         # Because poller only returns a file descriptor instead of a socket object, we need to maintain
         # a mapping between file descriptor numbers and socket objects in order to access the sockets
         self.socket_dict = {}
-
-        # We need to know the account id associated with our own account to initia
+        print("Server initialized on " + full_address)
+        # We now start the process of listening for data
 
 
     @staticmethod
@@ -58,6 +60,7 @@ class Server:
         socket_fileno = socket.fileno()
         self.socket_dict[socket_fileno] = socket
         self.poller.register(socket_fileno)
+        socket.send("Welcome to the NFL Server".encode())
 
 
     def poll_clients(self):
@@ -72,6 +75,7 @@ class Server:
 
     def handle_data(socket):
         request = str(socket.recv(bufsize=4096))
+        print(request)
         split_req = request.split(maxsplit=1)
         req_type = split_req[0].upper()
         try:
@@ -125,8 +129,8 @@ class Server:
             payment1 = req_json["payment_source_token1"]
             payment2 = req_json["payment_source_token2"]
             epassword = req_json["epass"]
-            tos_date = "tos_acceptance"
-        except KeyError, :
+            tos_date = req_json["tos_acceptance"]
+        except KeyError :
             self.log_io(socket, "ERROR 400 - INVALID REQUEST - JSON format missing some fields!")
             return
         # Validate uniqueness of emails and usernames in account creation
@@ -285,8 +289,8 @@ class Server:
             update_dict["name"] = req_json["name"]
 
         self.users.update_one(
-            {ident : ident_val}
-            {$set : update_dict})
+            {ident : ident_val},
+            {"$set" : update_dict})
         self.log_io("SUCCESS")
 
 
@@ -299,7 +303,7 @@ class Server:
             self.log_io("FAILURE")
             return
         self.users.update_one(
-            {"_id" : req_json["searcher"]}
+            {"_id" : req_json["searcher"]},
             {"$push" : {"friends" : req_json["searchee"]}}
         )
         self.log_io("SUCCESS")
@@ -317,7 +321,7 @@ class Server:
             curr_chargee = charge["chargee"]
             processed_charge_list.append({"user" : curr_chargee, "amount" : processed_amount, "note" : note})
             self.users.update_one(
-                {"_id" : curr_chargee}
+                {"_id" : curr_chargee},
                 {"$push" : 
                     {"liabilities" : {
                         "user" : charger_id, 
@@ -325,7 +329,7 @@ class Server:
                         "note" : note}}}
             )
         self.users.update_one(
-            {"_id" : charger_id}
+            {"_id" : charger_id},
             {"$push":
                 {"outstanding_reqs":
                     {"$each" : processed_charge_list}}}
@@ -353,17 +357,15 @@ class Server:
                 return
             new_balance_payer = payer.balance - processed_amount
             new_balance_payee = payee.balance + processed_amount
-            self.users.update(
+            self.users.update_one(
                 { "_id" : payee_id},
                 { "$set" : {"balance" : new_balance_payer}},
-                { "$pull": { "liabilities": { "user" : payee , "amount" : processed_amount, "note" : note} } },
-                { "multi": false }
+                { "$pull": { "liabilities": { "user" : payee , "amount" : processed_amount, "note" : note} } }
             )
-            self.users.update(
+            self.users.update_one(
                 { "_id" : payer_id},
                 { "$set" : {"balance" : new_balance_payee}},
-                { "$pull": { "outstanding_reqs": { "user" : payer , "amount" : processed_amount, "note" : note} } },
-                { "multi": false }
+                { "$pull": { "outstanding_reqs": { "user" : payer , "amount" : processed_amount, "note" : note} } }
             )
         elif method.upper() == "BANK":
             try:
@@ -375,16 +377,14 @@ class Server:
                 self.log_io("FAILURE - Status: %s\nType: %s\nCode: %s" % e.http_status, err.get('type'), err.get('code'))
                 return
             new_balance_payee = payee.balance + processed_amount
-            self.users.update(
+            self.users.update_one(
                 { "_id" : payee_id},
-                { "$pull": { "liabilities": { "user" : payee , "amount" : processed_amount, "note" : note} } },
-                { "multi": false }
+                { "$pull": { "liabilities": { "user" : payee , "amount" : processed_amount, "note" : note} } }
             )
-            self.users.update(
+            self.users.update_one(
                 { "_id" : payer_id},
                 { "$set" : {"balance" : new_balance_payee}},
-                { "$pull": { "outstanding_reqs": { "user" : payer , "amount" : processed_amount, "note" : note} } },
-                { "multi": False }
+                { "$pull": { "outstanding_reqs": { "user" : payer , "amount" : processed_amount, "note" : note} } }
             )
         else:
             self.log_io("ERROR 400 - INVALID REQUEST - Incorrect METHOD value")
@@ -408,6 +408,11 @@ class Server:
                 return
         self.log_io("SUCCESS")
 
+def main():
+    nfl_server = Server(5000)
+    nfl_server.serve_forever()
 
+if __name__ == "__main__":
+    main()
 
 
