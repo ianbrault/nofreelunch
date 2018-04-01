@@ -69,11 +69,15 @@ const styles = StyleSheet.create({
 
 
 export default class AddFriends extends React.Component {
+    goToHome() {
+        Actions.Home();
+    }
+
     render() {
         return (
             <Container style={ styles.container }>
                 <View style={ styles.navbar }>
-                    <TouchableOpacity onPress={ () => Actions.Home() }>
+                    <TouchableOpacity onPress={ this.goToHome }>
                         <Image source={ left_arrow } style={ styles.arrow }/>
                     </TouchableOpacity>
                     <Text style={ styles.title }>ADD FRIENDS</Text>
