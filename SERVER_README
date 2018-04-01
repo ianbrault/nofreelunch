@@ -5,11 +5,13 @@
 #   - Encrypted password (epass) - string representing hashed password, used to authenticate user sign in
 #   - Payout ID (transfer_id) - string used for transferring money into bank accounts by Stripe - NOT included in GETUSER API Response
 #   - Chargable ID (pay_id) - string used for charging money from bank accounts by Stripe - NOT included in GETUSER API Response
-#   - Current NFL balance (balance) - float with precision 2
-#   - Current debts owed to others (liabilities) - A dictionary from payids to (user, amount) 2-tuples, where 
-#       type(payid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
-#   - Current debts owed by others to user (outstanding_reqs) - A dictionary from chargeids to (user, amount) 2-tuples, where 
-#       type(chargeid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
+#   - Current NFL balance (balance) - decimal.Decimal with precision 2, representing the money in the account
+#   - Current debts owed by the user to others (liabilities) - A dictionary from chargeids to {"note" : , "user" : , "amount" : },
+#       dicts, where note is a string representing the note, user is the username to whom we owe the debt, and amount is the amount
+#       of the debt in dollars.cents
+#   - Current debts owed by others to user (outstanding_reqs) - A dictionary from chargeids to {"note" : , "user" : , "amount" : },
+#       dicts, where note is a string representing the note, user is the username who owes us the debt, and amount is the amount
+#       of the debt in dollars.cents
 #   - Friends (friends) - list of username strings that the user is friends with
 
 User Server API:
@@ -38,7 +40,7 @@ Each request is of the form [UPPERCASE REQUEST NAME] + [JSON object], the detail
         "last_name" : ,
         "ssn_last_4" : , 
     }
-    "tos_acceptance" : {"date" : [todays date]}
+    "tos_acceptance" : [todays date]
 }
     
     This creates a user in the database with the above info. We need 2 payment source tokens for the same account because
@@ -81,16 +83,18 @@ Each request is of the form [UPPERCASE REQUEST NAME] + [JSON object], the detail
 
 "CHARGE " + 
 {
-    "charger" : [user making the charge(s) - string] 
-    "charge_list" : [ {"chargee" : [string] , "amount" : [dollar amount]} , ...]
+    "charger" : [username of user making the charge(s) - string],
+    "note" : [string associated with charge],
+    "charge_list" : [ {"chargee" : [username string] , "amount" : [dollar amount]} , ...]
 }
-    Sends a charge request from charger to every chargee in the list for the amount in the list. As indicated in the request signature, there must be a specific dollar amount expressed in [0-9]+\.[0-9]{2}. Returns "CHARGEID " + a list of whitespace-separated integer, which are the unique charge IDs associated with each charge.
+    Sends a charge request from charger to every chargee in the list for the amount in the list. As indicated in the request signature, there must be a specific dollar amount expressed in [0-9]+\.[0-9]{2}.
 
 "COMPLETE " + 
 {
     "payer" : [person paying - string],
     "payee" : [person getting paid - string],
-    "charge_number"
+    "amount" : [amount of charge - dollars and cents string]
+    "note" : [note associated with the charge, used to select the right charge],
     "method" : [one of "BANK" | "NFLBAL"]
 }
     Checks if a charge exists from the payee to the payer in the amount given. If it does, it tries to complete the charge through the following process:
