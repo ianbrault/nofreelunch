@@ -3,8 +3,11 @@
  */
 
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Actions } from 'react-native-router-flux';
 import { Button, Container, Input, Item, Label, Text } from 'native-base';
+
+import left_arrow from '../img/left_arrow.png';
 
 
 const styles = StyleSheet.create({
@@ -19,7 +22,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: 'white',
         marginTop: 40,
-        marginBottom: 30
+        marginBottom: 30,
+        marginLeft: 0
     },
     subtitle: {
         fontSize: 24,
@@ -46,9 +50,20 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
+    navbar: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     searchBar: {
         width: 220,
         backgroundColor: 'white'
+    },
+    arrow: {
+        width: 50,
+        height: 50,
+        marginTop: 13,
+        marginLeft: -80
     }
 });
 
@@ -57,7 +72,12 @@ export default class AddFriends extends React.Component {
     render() {
         return (
             <Container style={ styles.container }>
-                <Text style={ styles.title }>ADD FRIENDS</Text>
+                <View style={ styles.navbar }>
+                    <TouchableOpacity onPress={ () => Actions.Home() }>
+                        <Image source={ left_arrow } style={ styles.arrow }/>
+                    </TouchableOpacity>
+                    <Text style={ styles.title }>ADD FRIENDS</Text>
+                </View>
                 <View style={ styles.searchBox }>
                     <Item floatingLabel style={ styles.searchBar }>
                         <Label>Search by username or email</Label>
