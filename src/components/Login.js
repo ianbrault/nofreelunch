@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#003300',
-        paddingTop: 8
+        paddingTop: 12
     },
     form: {
         paddingVertical: 30,

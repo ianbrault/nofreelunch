@@ -7,17 +7,20 @@ import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import { Actions, Router, Scene } from 'react-native-router-flux';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
-import stripe from 'tipsi-stripe';
 
 import bcrypt from "react-native-bcrypt";
 import isaac from "isaac";
 
 import allReducers from './reducers/index.js';
+import AccountSettings from './components/AccountSettings';
+import AddFriends from './components/AddFriends';
 import CreateAccount from './components/CreateAccount';
 import Home from './components/Home';
 import LetsEat from './components/LetsEat';
 import Loading from './components/Loading';
 import Login from './components/Login';
+import Receipt from './components/Receipt';
+import SelectFriends from './components/SelectFriends';
 import Welcome from './components/Welcome';
 
 
@@ -26,7 +29,9 @@ bcrypt.setRandomFallback((len) => {
 	return buf.map(() => Math.floor(isaac.random() * 256));
 });
 
+
 const store = createStore(allReducers);
+
 
 export default class App extends React.Component {
     handleRegisterSubmit(data) {
@@ -104,6 +109,10 @@ export default class App extends React.Component {
             return;
         }
 
+        var month = data.dob.split('-')[0];
+        var date = data.dob.split('-')[1];
+        var year = data.dob.split('-')[2];
+
         // encrypt provided password
         bcrypt.genSalt(12, (err, salt) => {
             bcrypt.hash(salt + data.password, salt, (err, hash) => {
@@ -111,17 +120,56 @@ export default class App extends React.Component {
                 delete data.confPassword;
                 data.password = hash;
 
-                var bankToken = {
+                var today = new Date();
+                var obj = {
+                    "username": data.username,
+                    "email": data.email,
+                    "legal_identity": {
+                        "address": {
+                            "line1": data.address,
+                            "city": data.city,
+                            "state": data.state,
+                            "postal_code": data.postalcode,
+                        },
+                        "dob": {
+                            "day": date,
+                            "month": month,
+                            "year": year,
+                        },
+                        "first_name": data.firstname,
+                        "last_name": data.lastname,
+                        "ssn_last_4": data.ssn,
+                    },
+                    "tos_acceptance": today.toISOString(),
+                };
+                
+                /* var bankToken = {
                     accountNumber: data.accountNum,
                     routingNumber: data.routingNum,
                     accountHolderName: data.firstname + ' ' + data.lastname,
                     accountHolderType: 'individual',
                     countryCode: 'US',
                     currency: 'usd'
+                }; */
+                var bankToken = {
+                    "bank_account[country]": "US",
+                    "bank_account[currency]": "usd",
+                    "bank_account[account_holder_name]": data.firstname + ' ' + data.lastname,
+                    "bank_account[account_holder_type]": "individual",
+                    "bank_account[routing_number]": data.routingNum,
+                    "bank_account[account_number]": data.accountNum,
                 };
 
+                var formBody = [];
+                for (var property in bankToken) {
+                    var encodedKey = encodeURIComponent(property);
+                    var encodedValue = encodeURIComponent(bankToken[property]);
+                    formBody.push(encodedKey + "=" + encodedValue);
+                }
+                formBody = formBody.join("&");
+
                 // need 2 tokens
-                stripe.createTokenWithBankAccount(bankToken).then(token1 => {
+                /* stripe.createTokenWithBankAccount(bankToken).then(token1 => {
                     stripe.createTokenWithBankAccount(bankToken).then(token2 => {
                         var today = new Date();
                         var todaystr = today.toISOString();
@@ -154,7 +202,31 @@ export default class App extends React.Component {
                             "tos_acceptance": todaystr,
                         }
                     });
-                });
+                }); */
+                var fetchurl = "https://api.stripe.com/v3/tokens";
+                var fetchopts = {
+                    method: 'post',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Bearer ' + 'sk_test_4aGZrLg0hRruaz5JlkRY8h1k'
+                    },
+                    body: formBody
+                }
+                fetch(fetchurl, fetchopts)
+                    .then(res1 => res1.json()).then(token1 => {
+                        fetch(fetchurl, fetchopts)
+                            .then(res2 => res2.json()).then(token2 => {
+                                obj["payment_source_token1"] = token1;
+                                obj["payment_source_token2"] = token2;
+                                Alert.alert(JSON.stringify(obj));
+                            });
+                    })
+                    .catch(err => {
+                        Actions.CreateAccount({ 
+                            validationErr: "Error creating Stripe account token " + err 
+                        });
+                    });
             });
         });
     }
@@ -163,10 +235,10 @@ export default class App extends React.Component {
         // display load screen
         Actions.Loading();
 
-        if (data.user === '') {
+        /* if (data.user === '') {
             Actions.Login({ validationErr: "No username provided" });
             return;
-        } 
+        } */
 
         // attempt to fetch stored password for username/email
         // salt is first 29 characters of stored bcrypt hash
@@ -227,6 +299,34 @@ export default class App extends React.Component {
                             hideNavBar={ true }
                             key='LetsEat'
                             title='LetsEat'
+                        />
+                        {/* select all friends involved in your order */}
+                        <Scene
+                            component={ SelectFriends }
+                            hideNavBar={ true }
+                            key='SelectFriends'
+                            title='SelectFriends'
+                        />
+                        {/* show the picture taken of the receipt */}
+                        <Scene
+                            component={ Receipt }
+                            hideNavBar={ true }
+                            key='Receipt'
+                            title='Receipt'
+                        />
+                        {/* page to add friends */}
+                        <Scene
+                            component={ AddFriends }
+                            hideNavBar={ true }
+                            key='AddFriends'
+                            title='AddFriends'
+                        />
+                        {/* account settings page */}
+                        <Scene
+                            component={ AccountSettings }
+                            hideNavBar={ true }
+                            key='AccountSettings'
+                            title='AccountSettings'
                         />
                     </Scene>
                 </Router>

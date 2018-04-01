@@ -7,7 +7,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "express": "^4.16.3",
     "isaac": "0.0.5",
     "native-base": "^2.4.1",
     "react": "16.3.0",
@@ -17,23 +16,20 @@
     "react-native-router-flux": "^4.0.0-beta.28",
     "react-redux": "^5.0.7",
     "redux": "^3.7.2",
-    "redux-form": "^7.3.0",
-    "tipsi-stripe": "^5.1.0"
+    "redux-form": "^7.3.0"
   },
   "devDependencies": {
     "babel-jest": "22.4.3",
     "babel-preset-react-native": "4.0.0",
-    "exp": "^51.4.0",
-    "expo": "^26.0.0",
     "jest": "22.4.3",
     "react-test-renderer": "16.3.0"
   },
   "jest": {
     "preset": "react-native"
   },
-  "rnpm": {
-    "assets": [
-	"./assets/fonts/"
-    ]
+  "expo": {
+    "name": "nofreelunch",
+    "slug": "nofreelunch",
+    "sdkVersion": "26.0.0"
   }
 }
