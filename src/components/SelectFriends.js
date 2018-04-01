@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     addButton: {
         width: 35,
         height: 35,
-        marginLeft: 20,
+        marginLeft: 30,
         marginRight: 15
     },
     selected: {
@@ -66,8 +66,7 @@ const friendsList = [
     "Michael Meadow",
     "Krish Seth",
     "Hassan Tarek",
-    "Benjamin Hofilena",
-    "Mark Timmes"
+    "Ben Hofilena",
 ]; 
 
 
@@ -107,10 +106,12 @@ export default class SelectFriends extends React.Component {
 
     handleDone() {
         var friends = this.getSelected();
-        Actions.Receipt({ 
-            selected: friends,
-            data: this.receiptData 
-        });
+        if (friends.length > 0) {
+            Actions.Receipt({ 
+                selected: friends,
+                data: this.receiptData 
+            });
+        }
     }
 
     selectFriend(i) {

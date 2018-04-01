@@ -60,10 +60,13 @@ export default class Receipt extends React.Component {
         }
 
         this.selectedFriends = this.props.selected;
-
         this.receiptData = this.props.data;
-        this.total = (this.receiptData.totalAmount.data) ? this.receiptData.totalAmount.data : 0.0;
-        this.tax = (this.receiptData.taxAmount.data) ? this.receiptData.taxAmount.data : 0.0;
+
+        this.total = 0.0, this.tax = 0.0;
+        var totalAmount = this.receiptData.totalAmount;
+        var taxAmount = this.receiptData.taxAmount;
+        if (totalAmount && totalAmount.data) this.total = totalAmount.data;
+        if (taxAmount && taxAmount.data) this.tax = taxAmount.data;
         this.subtotal = this.total - this.tax;
     }
 

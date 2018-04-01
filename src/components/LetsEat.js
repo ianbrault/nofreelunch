@@ -54,7 +54,8 @@ function queryTaggun(imageData) {
         })
     }).then(res => res.json()).then(receiptInfo => {
         console.log("received response: ", receiptInfo);
-        Actions.SelectFriends({ data: receiptInfo });
+        if (receiptInfo.statusCode !== 418) Actions.SelectFriends({ data: receiptInfo });
+        else Actions.LetsEat();
     }).catch(err => {
         console.log("error: ", err);
     });
