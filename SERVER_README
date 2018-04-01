@@ -1,7 +1,8 @@
 # A user must consist of the following fields:
 #   - Full name (name) - string with no @
-#   - Username (username) - string with no @
+#   - Username (username) - unique among all users - string with no @
 #   - Email (email) - string with @
+#   - Password (epassword) - frontend-encrypted password, stored for validating logins
 #   - Current debts owed to others (liabilities) - A dictionary from payids to (user, amount) 2-tuples, where 
 #       type(payid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
 #   - Current debts owed by others to user (outstanding_reqs) - A dictionary from payids to (user, amount) 2-tuples, where 
@@ -11,22 +12,25 @@
 
 User Server API:
 
-CREATE [username] [email] [firstname] [lastname] [payment_source_token]
+CREATE  [firstname] [lastname] [username] [email] [encrypted_password] [payment_source_token]
 This creates a user in the database with the above info
 
-SEARCH [searcher] [searchee] [optionally 1 of "FRIEND" OR "SHORT"]
-Search for a searchee (by username or email, according to type) in the database. 
+GETUSER [user] ("VERBOSE" || "SHORT")
+Search for a user (by username or email) in the database. 
 If the user is not in the database, we always return FAILURE
 If the user is found, the behavior depends on the presence of the trailing value
-1.) If there is no trailing value, "SUCCESS" + the JSON value of the user is returned (used for checking what's happened to the user)
-2.) If the trailing value is FRIEND, searcher adds searchee as a friend, and then returns SUCCESS
-3.) If the trailing value is SHORT, only SUCCESS is returned (used for checking whether a user exists)
+1.) If the trailing value is VERBOSE, we return "SUCESS" + the entire JSON object associated with the user
+2.) If the trailing value is SHORT, we only return "SUCCESS" + the encrypted version of the user's password
 
 UPDATE [username] [fields...]
 where user is the username and fields are a list of key value pairs separated by spaces, whose keys can be any of the following:
     - EMAIL - value is an email string
     - NAME - value is the user's name
     - PAYMENT - we can update the user's preferred bank account with a token from stripe.js
+
+ADDRIEND [searcher] [searchee]
+Searches for a user to add as a friend. If searchee exists, we return "SUCCESS" and add them as one of searcher's friends. 
+If searchee doesn't exist, we just return "FAILURE".
 
 CHARGE [user_making_charge] (chargee, amount)...
 Sends a charge request from user_making_charge to every chargee in the list for the amount in the list. As indicated in the request signature, there must be a specific dollar amount expressed in [0-9]+\.[0-9]{2}
