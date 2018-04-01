@@ -1,49 +1,110 @@
-# A user must consist of the following fields:
+# A user consists of the following fields - all are included in GETUSER VERB API Response unless otherwise noted:
+#   - Username (_id) - unique among all users - string with no @
 #   - Full name (name) - string with no @
-#   - Username (username) - unique among all users - string with no @
 #   - Email (email) - string with @
-#   - Password (epassword) - frontend-encrypted password, stored for validating logins
+#   - Encrypted password (epass) - string representing hashed password, used to authenticate user sign in
+#   - Payout ID (transfer_id) - string used for transferring money into bank accounts by Stripe - NOT included in GETUSER API Response
+#   - Chargable ID (pay_id) - string used for charging money from bank accounts by Stripe - NOT included in GETUSER API Response
+#   - Current NFL balance (balance) - float with precision 2
 #   - Current debts owed to others (liabilities) - A dictionary from payids to (user, amount) 2-tuples, where 
 #       type(payid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
-#   - Current debts owed by others to user (outstanding_reqs) - A dictionary from payids to (user, amount) 2-tuples, where 
-#       type(payid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
-#   - Friends (friends) - list of username strings
-#   - Current NFL balance (balance) - float with precision 2
+#   - Current debts owed by others to user (outstanding_reqs) - A dictionary from chargeids to (user, amount) 2-tuples, where 
+#       type(chargeid) = unique ints, type(user) = username string, and type(amount) = float with precision 2
+#   - Friends (friends) - list of username strings that the user is friends with
 
 User Server API:
+Each request is of the form [UPPERCASE REQUEST NAME] + [JSON object], the details of the JSON object are given after the request type
 
-CREATE  [firstname] [lastname] [username] [email] [encrypted_password] [payment_source_token]
-This creates a user in the database with the above info
+"CREATE " 
+{
+    "username" : ,
+    "email" : ,
+    "epass" : ,
+    "payment_source_token1" : ,
+    "payment_source_token2" : ,
+    "legal_entity": {
+        "address" : {
+            "city" : ,
+            "line1" : ,
+            "postal_code" : ,
+            "state" : 
+        }
+        "dob" : {
+            "day" : ,
+            "month" : ,
+            "year" : 
+        }
+        "first_name" : , 
+        "last_name" : ,
+        "ssn_last_4" : , 
+    }
+    "tos_acceptance" : {"date" : [todays date]}
+}
+    
+    This creates a user in the database with the above info. We need 2 payment source tokens for the same account because
+    we need to create one Customer account for the user to make payments and one Connect Custom account to accept payments.
+    Returns an ERROR if fields are incorrect, FAILURE if the username/email already exist in the system, or "SUCCESS - User 
+    [username] created" on successful account creation.
 
-GETUSER [user] ("VERBOSE" || "SHORT")
-Search for a user (by username or email) in the database. 
-If the user is not in the database, we always return FAILURE
-If the user is found, the behavior depends on the presence of the trailing value
-1.) If the trailing value is VERBOSE, we return "SUCESS" + the entire JSON object associated with the user
-2.) If the trailing value is SHORT, we only return "SUCCESS" + the encrypted version of the user's password
+"GETUSER " + 
+{ 
+    "user_id" : [can be either username or email],
+    "flag" : [must be either VERB or SHORT] 
+}
+    Search for a user (by username or email) in the database. 
+    If the user is not in the database, we always return FAILURE
+    If the user is found, the behavior depends on the presence of the trailing value
+    1.) If the flag is VERB, we return "SUCESS" + a newline + the entire JSON object associated with the user
+    2.) If the flag is SHORT, we only return "SUCCESS" + a newline + the encrypted version of the user's password
 
-UPDATE [username] [fields...]
-where user is the username and fields are a list of key value pairs separated by spaces, whose keys can be any of the following:
-    - EMAIL - value is an email string
-    - NAME - value is the user's name
-    - PAYMENT - we can update the user's preferred bank account with a token from stripe.js
+"UPDATE " + 
+{
+    "deltas" : [list of changed fields - strings],
+    "username" : [username],
+    "email" : [email],
+    "name" : [name],
+    "payment1" : [first token for payment],
+    "payment2" : [second token for payment]
+}
+    Note that we cannot let the user update the username AND email at the same time, otherwise we won't be able to access them.
+    We need the "searchby" value to tell the database how to reference the user - if its "U", the username is unchanged, and if it's
+    "E", the email is unchanged. Also note that if one of payment1 or payment2 is changed, both must be changed, and they are supposed
+    to match to the same bank account. Returns "FAILURE" + error message for variety of failures, "SUCCESS" on success
 
-ADDRIEND [searcher] [searchee]
-Searches for a user to add as a friend. If searchee exists, we return "SUCCESS" and add them as one of searcher's friends. 
-If searchee doesn't exist, we just return "FAILURE".
+"ADDFRIEND " +
+{
+    "searcher" : [person searching for a friend],
+    "searchee" : [person added as a friend]
+}
+    Searches for a user to add as a friend. If searchee exists, we return "SUCCESS" and add them as one of searcher's friends. 
+    If searchee doesn't exist, we just return "FAILURE".
 
-CHARGE [user_making_charge] (chargee, amount)...
-Sends a charge request from user_making_charge to every chargee in the list for the amount in the list. As indicated in the request signature, there must be a specific dollar amount expressed in [0-9]+\.[0-9]{2}
+"CHARGE " + 
+{
+    "charger" : [user making the charge(s) - string] 
+    "charge_list" : [ {"chargee" : [string] , "amount" : [dollar amount]} , ...]
+}
+    Sends a charge request from charger to every chargee in the list for the amount in the list. As indicated in the request signature, there must be a specific dollar amount expressed in [0-9]+\.[0-9]{2}. Returns "CHARGEID " + a list of whitespace-separated integer, which are the unique charge IDs associated with each charge.
 
-COMPLETE [payer] [payee] [amount] [method = BANK | NFLBAL]
-Checks if a charge exists from the payee to the payer in the amount given. If it does, it tries to complete the charge through the following process:
-1.) If method is BANK, it takes charges the payers bank account and completes
-2.) If method is NFLBAL, it charges the balance and completes IF the balance is sufficient to cover the charge.
-If the above steps succeed, it credits the NFL balance of the payee, removes the charge, and returns SUCESS.
-^^If any of the above steps fail, it does not remove the charge and returns FAILURE
+"COMPLETE " + 
+{
+    "payer" : [person paying - string],
+    "payee" : [person getting paid - string],
+    "charge_number"
+    "method" : [one of "BANK" | "NFLBAL"]
+}
+    Checks if a charge exists from the payee to the payer in the amount given. If it does, it tries to complete the charge through the following process:
+    1.) If method is BANK, it takes charges the payers bank account and completes
+    2.) If method is NFLBAL, it charges the balance and completes IF the balance is sufficient to cover the charge.
+    If the above steps succeed, it credits the NFL balance of the payee, removes the charge, and returns SUCCESS.
+    ^^If any of the above steps fail, it does not remove the charge and returns FAILURE
 
-TRANSFER [user] [amount]
-If the user has an NFL balance larger than [amount], we intiate a bank transfer out of the NFL account to the user's bank account and return SUCCESS.
-Otherwise, we return FAILURE and do nothing.
+"TRANSFER " +
+{
+    "user" : [user making transfer to bank],
+    "amount" : [amount transferred out of NFL account]
+}
+    If the user has an NFL balance larger than [amount], we intiate a bank transfer out of the NFL account to the user's bank account and return SUCCESS.
+    Otherwise, we return FAILURE and do nothing.
 
 
