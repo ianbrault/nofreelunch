@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import { Router, Scene } from 'react-native-router-flux';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
@@ -55,6 +55,18 @@ export default class App extends React.Component {
 
     handleLoginSubmit(data) {
         Alert.alert('Submitted!', JSON.stringify(data));
+    }
+
+    handleURL(event) {
+        console.log("URL: ", event.url);
+        const route = event.url.replace(/.*?:\/\//g, '');
+        console.log("route: ", route);
+    }
+
+    componentDidMount() {
+        Linking.addEventListener('url', this.handleURL);
+    } componentWillUnmount() {
+        Linking.removeEventListener('url', this.handleURL);
     }
 
     render() {

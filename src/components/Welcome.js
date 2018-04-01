@@ -56,7 +56,7 @@ export default class Welcome extends React.Component {
     render() {
         return (
             <Container style={ styles.welcomeContainer }>
-                <Image source={ require('../logo.png') } style={ styles.logo }/>
+                <Image source={ require('../img/logo.png') } style={ styles.logo }/>
                 <Text style={ styles.title }>NO FREE</Text>
                 <Text style={ styles.title }>LUNCH</Text>
                 <View style={ styles.button }>
