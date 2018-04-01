@@ -37,8 +37,26 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         fontWeight: 'bold'
+    },
+    errRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20,
+        marginBottom: -10
+    },
+    err: {
+        color: '#af4448',
+        fontSize: 16,
+        fontWeight: 'bold'
     }
 });
+
+
+const validate = data => {
+    if (data.user === undefined) data.user = '';
+    if (data.password === undefined) data.password = '';
+}
 
 
 // header rendered above form component
@@ -73,9 +91,13 @@ class Login extends React.Component {
     }
 
     render() {
+        var err = this.props.validationErr ? 
+            <View style={ styles.errRow }><Text style={ styles.err }>{ this.props.validationErr }</Text></View>
+            : <Text/>;
         return (
             <Container>
                 <FormHeader />
+                { err }
                 <Content style={ styles.form }>
                     <ScrollView keyboardShouldPersistTaps={ 'handled' }>
                         <Field
@@ -102,4 +124,5 @@ class Login extends React.Component {
 
 export default reduxForm({
     form: 'login',
+    validate
 })(Login);
