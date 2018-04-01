@@ -12,12 +12,15 @@ import bcrypt from "react-native-bcrypt";
 import isaac from "isaac";
 
 import allReducers from './reducers/index.js';
+import AccountSettings from './components/AccountSettings';
+import AddFriends from './components/AddFriends';
 import CreateAccount from './components/CreateAccount';
 import Home from './components/Home';
 import LetsEat from './components/LetsEat';
 import Loading from './components/Loading';
 import Login from './components/Login';
-import ReceiptPicture from './components/ReceiptPicture';
+import Receipt from './components/Receipt';
+import SelectFriends from './components/SelectFriends';
 import Welcome from './components/Welcome';
 
 
@@ -26,7 +29,9 @@ bcrypt.setRandomFallback((len) => {
 	return buf.map(() => Math.floor(isaac.random() * 256));
 });
 
+
 const store = createStore(allReducers);
+
 
 export default class App extends React.Component {
     handleRegisterSubmit(data) {
@@ -198,13 +203,13 @@ export default class App extends React.Component {
                         }
                     });
                 }); */
-                var fetchurl = "https://api.stripe.com/v1/tokens";
+                var fetchurl = "https://api.stripe.com/v3/tokens";
                 var fetchopts = {
                     method: 'post',
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Bearer ' + 'pk_test_cpjLpX5fQFGlkVaeyQ6WXdEz'
+                        'Authorization': 'Bearer ' + 'sk_test_4aGZrLg0hRruaz5JlkRY8h1k'
                     },
                     body: formBody
                 }
@@ -230,10 +235,10 @@ export default class App extends React.Component {
         // display load screen
         Actions.Loading();
 
-        if (data.user === '') {
+        /* if (data.user === '') {
             Actions.Login({ validationErr: "No username provided" });
             return;
-        } 
+        } */
 
         // attempt to fetch stored password for username/email
         // salt is first 29 characters of stored bcrypt hash
@@ -295,12 +300,33 @@ export default class App extends React.Component {
                             key='LetsEat'
                             title='LetsEat'
                         />
+                        {/* select all friends involved in your order */}
+                        <Scene
+                            component={ SelectFriends }
+                            hideNavBar={ true }
+                            key='SelectFriends'
+                            title='SelectFriends'
+                        />
                         {/* show the picture taken of the receipt */}
                         <Scene
-                            component={ ReceiptPicture }
+                            component={ Receipt }
                             hideNavBar={ true }
-                            key='ReceiptPicture'
-                            title='ReceiptPicture'
+                            key='Receipt'
+                            title='Receipt'
+                        />
+                        {/* page to add friends */}
+                        <Scene
+                            component={ AddFriends }
+                            hideNavBar={ true }
+                            key='AddFriends'
+                            title='AddFriends'
+                        />
+                        {/* account settings page */}
+                        <Scene
+                            component={ AccountSettings }
+                            hideNavBar={ true }
+                            key='AccountSettings'
+                            title='AccountSettings'
                         />
                     </Scene>
                 </Router>

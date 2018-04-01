@@ -35,6 +35,33 @@ const styles = StyleSheet.create({
 });
 
 
+function queryTaggun(imageData) {
+    var path = imageData.uri.split('/');
+    var taggun_url = "https://api.taggun.io/api/receipt/v1/verbose/encoded";
+    console.log("querying ", taggun_url);
+
+    fetch(taggun_url, {
+        method: 'post',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            apikey: ' 788fdbf034bc11e89ba52979e39c3e3c',
+        },
+        body: JSON.stringify({
+            image: imageData.base64,
+            filename: path[path.length - 1],
+            contentType: 'image/jpeg',
+            language: 'en'
+        })
+    }).then(res => res.json()).then(receiptInfo => {
+        console.log("received response: ", receiptInfo);
+        Actions.SelectFriends({ data: receiptInfo });
+    }).catch(err => {
+        console.log("error: ", err);
+    });
+}
+
+
 export default class Welcome extends React.Component {
     snap() {
         if (this.camera) {
@@ -42,15 +69,11 @@ export default class Welcome extends React.Component {
             Actions.Loading();
 
             const options = { quality: 1.0, base64: true };
-            this.camera.takePictureAsync(options)
-                .then(data => {
-                    console.log("data: ", data);
-                    console.log("data.uri: ", data.uri);
-                    Actions.ReceiptPicture({ receipt: data })
-                })
-                .catch(err => {
-                    console.err(err)
-                })
+            this.camera.takePictureAsync(options).then(data => {
+                queryTaggun(data)
+            }).catch(err => {
+                console.err(err)
+            });
         }
     }
 
