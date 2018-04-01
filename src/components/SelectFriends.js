@@ -28,6 +28,9 @@ const styles = StyleSheet.create({
         color: '#003300',
         paddingTop: 8
     },
+    listContainer: {
+        marginLeft: -30
+    },
     buttonRow: {
         flexDirection: "row", 
         justifyContent: "center"
@@ -38,6 +41,7 @@ const styles = StyleSheet.create({
         marginBottom: 50
     },
     buttonText: {
+        color: '#90a4ae',
         fontWeight: 'bold'
     },
     listItem: {
@@ -50,11 +54,9 @@ const styles = StyleSheet.create({
         marginRight: 15
     },
     selected: {
-        backgroundColor: '#81c784'
+        backgroundColor: '#c8e6c9'
     },
-    unselected: {
-
-    }
+    unselected: {}
 });
 
 
@@ -86,7 +88,6 @@ class Header extends React.Component {
 export default class SelectFriends extends React.Component {
     constructor(props) {
         super(props);
-        console.log("this.props.data: ", this.props.data);
         this.receiptData = this.props.data;
 
         var selected = new Array(friendsList.length);
@@ -105,7 +106,6 @@ export default class SelectFriends extends React.Component {
     }
 
     handleDone() {
-        console.log("receiptData: ", this.receiptData);
         var friends = this.getSelected();
         Actions.Receipt({ 
             selected: friends,
@@ -138,7 +138,7 @@ export default class SelectFriends extends React.Component {
             <Container>
                 <Header />
                 <ScrollView>
-                    <List>
+                    <List style={ styles.listContainer }>
                         { this.renderFriends() }
                     </List>
                     <View style={ styles.buttonRow }>

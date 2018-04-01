@@ -72,8 +72,16 @@ class Header extends React.Component {
 
 
 export default class Home extends React.Component {
-    handlePress1() {
+    handleSplit() {
         Actions.LetsEat();
+    }
+
+    handleAdd() {
+        Actions.AddFriends();
+    }
+
+    handleSettings() {
+        Actions.AccountSettings();
     }
 
     render() {
@@ -82,17 +90,17 @@ export default class Home extends React.Component {
                 <Header />
                 <Content style={ styles.buttonContainer }>
                     <View style={ styles.buttonView }>
-                        <Button block light style={ styles.button } onPress={ this.handlePress1 }>
+                        <Button block light style={ styles.button } onPress={ this.handleSplit }>
                             <Text style={ styles.buttonText }>LET'S EAT</Text>
                         </Button>
                     </View>
                     <View style={ styles.buttonView }>
-                        <Button block light style={ styles.button }>
+                        <Button block light style={ styles.button } onPress={ this.handleAdd }>
                             <Text style={ styles.buttonText }>ADD FRIENDS</Text>
                         </Button>
                     </View>
                     <View style={ styles.buttonView }>
-                        <Button block light style={ styles.button }>
+                        <Button block light style={ styles.button } onPress={ this.handleSettings }>
                             <Text style={ styles.buttonText }>ACCOUNT SETTINGS</Text>
                         </Button>
                     </View>
