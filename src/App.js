@@ -7,6 +7,7 @@ import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
 import { Actions, Router, Scene } from 'react-native-router-flux';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
+import stripe from 'tipsi-stripe';
 
 import bcrypt from "react-native-bcrypt";
 import isaac from "isaac";
@@ -14,42 +15,11 @@ import isaac from "isaac";
 import allReducers from './reducers/index.js';
 import CreateAccount from './components/CreateAccount';
 import Home from './components/Home';
+import LetsEat from './components/LetsEat';
 import Loading from './components/Loading';
 import Login from './components/Login';
 import Welcome from './components/Welcome';
 
-
-/*{
-    <Camera
-        ref={cam => { this.camera = cam }}
-        style={ styles.preview }>
-    <View style={ styles.camera_view }>
-        <TouchableOpacity
-            onPress={ this.takePicture.bind(this) }
-            style = { styles.capture }>
-        </TouchableOpacity>
-    </View>
-    </Camera>
-    preview: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        width: 400,
-    },
-    camera_view: {
-        flex: 0, 
-        flexDirection: 'row', 
-        justifyContent: 'center',
-    },
-    capture: {
-        flex: 0,
-        backgroundColor: '#fff',
-        borderRadius: 50,
-        padding: 25,
-        alignSelf: 'center',
-        margin: 20
-    },
-}*/
 
 bcrypt.setRandomFallback((len) => {
 	const buf = new Uint8Array(len);
@@ -73,6 +43,12 @@ export default class App extends React.Component {
             return;
         } else if (data.email !== '' && !data.email.match(emailRegex)) {
             Actions.CreateAccount({ validationErr: "Invalid email address" });
+            return;
+        } else if (data.accountNum === '') {
+            Actions.CreateAccount({ validationErr: "Please provide an account number" });
+            return;
+        } else if (data.routingNum === '' || data.routingNum.length !== 9) {
+            Actions.CreateAccount({ validationErr: "Invalid routing number" });
             return;
         } else if (data.dob === '') {
             Actions.CreateAccount({ validationErr: "Please provide your date of birth" });
@@ -134,13 +110,59 @@ export default class App extends React.Component {
                 // replace plaintext password with hashed one
                 delete data.confPassword;
                 data.password = hash;
-                Alert.alert('Submitted!', JSON.stringify(data));
-                // Actions.Home();
+
+                var bankToken = {
+                    accountNumber: data.accountNum,
+                    routingNumber: data.routingNum,
+                    accountHolderName: data.firstname + ' ' + data.lastname,
+                    accountHolderType: 'individual',
+                    countryCode: 'US',
+                    currency: 'usd'
+                };
+
+                // need 2 tokens
+                stripe.createTokenWithBankAccount(bankToken).then(token1 => {
+                    stripe.createTokenWithBankAccount(bankToken).then(token2 => {
+                        var today = new Date();
+                        var todaystr = today.toISOString();
+
+                        var month = data.dob.split('-')[0];
+                        var date = data.dob.split('-')[1];
+                        var year = data.dob.split('-')[2];
+
+                        var obj = {
+                            "username": data.username,
+                            "email": data.email,
+                            "payment_source_token1": token1,
+                            "payment_source_token2": token2,
+                            "legal_identity": {
+                                "address": {
+                                    "line1": data.address,
+                                    "city": data.city,
+                                    "state": data.state,
+                                    "postal_code": data.postalcode,
+                                },
+                                "dob": {
+                                    "day": date,
+                                    "month": month,
+                                    "year": year,
+                                },
+                                "first_name": data.firstname,
+                                "last_name": data.lastname,
+                                "ssn_last_4": data.ssn,
+                            },
+                            "tos_acceptance": todaystr,
+                        }
+                    });
+                });
             });
         });
     }
 
     handleLoginSubmit(data) {
+        // display load screen
+        Actions.Loading();
+
         if (data.user === '') {
             Actions.Login({ validationErr: "No username provided" });
             return;
@@ -152,8 +174,7 @@ export default class App extends React.Component {
         var storedSalt = "$2a$12$Jwfsi9sHpeNsIYEZ97TlOO";
         bcrypt.hash(storedSalt + data.password, storedSalt, (err, hash) => {
             // invalid password if no match
-            Alert.alert('Submitted!', JSON.stringify(data));
-            // Actions.Home();
+            Actions.Home();
         });
     }
 
@@ -199,6 +220,13 @@ export default class App extends React.Component {
                             hideNavBar={ true }
                             key='Loading'
                             title='Loading'
+                        />
+                        {/* take a picture of a receipt */}
+                        <Scene
+                            component={ LetsEat }
+                            hideNavBar={ true }
+                            key='LetsEat'
+                            title='LetsEat'
                         />
                     </Scene>
                 </Router>

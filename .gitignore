@@ -49,3 +49,4 @@ buck-out/
 */fastlane/screenshots
 
 .expo
+.vscode/*

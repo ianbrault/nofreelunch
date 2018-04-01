@@ -70,13 +70,17 @@ class Header extends React.Component {
 
 
 export default class Home extends React.Component {
+    handlePress1() {
+        Actions.LetsEat();
+    }
+
     render() {
         return (
             <Container>
                 <Header />
                 <Content style={ styles.buttonContainer }>
                     <View style={ styles.buttonView }>
-                        <Button block light style={ styles.button }>
+                        <Button block light style={ styles.button } onPress={ this.handlePress1 }>
                             <Text style={ styles.buttonText }>LET'S EAT</Text>
                         </Button>
                     </View>
